@@ -1,0 +1,14 @@
+target/
+.git/
+.gitattributes
+.scratch/
+docs/
+.idea/
+*.iml
+*.db
+HELP.md
+README.md
+*:Zone.Identifier
+
+# Nada que só faz sentido na máquina de desenvolvimento entra na imagem.
+CLAUDE.md

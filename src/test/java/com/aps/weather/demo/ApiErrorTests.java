@@ -1,8 +1,8 @@
 package com.aps.weather.demo;
 
 import com.aps.weather.demo.client.FonteDeClima;
-import com.aps.weather.demo.service.ApiException;
-import com.aps.weather.demo.service.DadoInvalidoException;
+import com.aps.weather.demo.exception.ApiException;
+import com.aps.weather.demo.exception.DadoInvalidoException;
 import jakarta.persistence.PersistenceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

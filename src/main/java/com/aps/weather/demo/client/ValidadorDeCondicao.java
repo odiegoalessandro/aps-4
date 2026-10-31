@@ -1,6 +1,6 @@
 package com.aps.weather.demo.client;
 
-import com.aps.weather.demo.service.DadoInvalidoException;
+import com.aps.weather.demo.exception.DadoInvalidoException;
 
 public final class ValidadorDeCondicao {
 

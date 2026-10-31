@@ -4,7 +4,7 @@ import com.aps.weather.demo.client.FonteDeClima;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
 import com.aps.weather.demo.repository.PrevisaoRepository;
-import com.aps.weather.demo.service.ApiException;
+import com.aps.weather.demo.exception.ApiException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

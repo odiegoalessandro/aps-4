@@ -1,10 +1,10 @@
 package com.aps.weather.demo.api;
 
-import com.aps.weather.demo.service.ApiException;
-import com.aps.weather.demo.service.CidadeNaoEncontradaException;
-import com.aps.weather.demo.service.DadoInvalidoException;
-import com.aps.weather.demo.service.RequisicaoInvalidaException;
-import com.aps.weather.demo.service.SemDadosClimaticosException;
+import com.aps.weather.demo.exception.ApiException;
+import com.aps.weather.demo.exception.CidadeNaoEncontradaException;
+import com.aps.weather.demo.exception.DadoInvalidoException;
+import com.aps.weather.demo.exception.RequisicaoInvalidaException;
+import com.aps.weather.demo.exception.SemDadosClimaticosException;
 import tools.jackson.core.JacksonException;
 import jakarta.persistence.PersistenceException;
 import org.slf4j.Logger;

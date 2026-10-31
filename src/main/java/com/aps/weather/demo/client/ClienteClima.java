@@ -2,8 +2,8 @@ package com.aps.weather.demo.client;
 
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
-import com.aps.weather.demo.service.ApiException;
-import com.aps.weather.demo.service.DadoInvalidoException;
+import com.aps.weather.demo.exception.ApiException;
+import com.aps.weather.demo.exception.DadoInvalidoException;
 import tools.jackson.databind.ObjectMapper;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;

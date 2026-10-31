@@ -1,6 +1,6 @@
 package com.aps.weather.demo.client;
 
-import com.aps.weather.demo.service.DadoInvalidoException;
+import com.aps.weather.demo.exception.DadoInvalidoException;
 import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;

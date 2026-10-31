@@ -4,6 +4,8 @@ import com.aps.weather.demo.client.FonteDeClima;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.NomeDeCidade;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
+import com.aps.weather.demo.exception.ApiException;
+import com.aps.weather.demo.exception.DadoInvalidoException;
 import com.aps.weather.demo.repository.LocalizacaoRepository;
 import com.aps.weather.demo.repository.PrevisaoRepository;
 import io.micrometer.core.instrument.MeterRegistry;

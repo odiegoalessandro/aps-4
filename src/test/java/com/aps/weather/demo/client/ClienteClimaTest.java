@@ -2,7 +2,7 @@ package com.aps.weather.demo.client;
 
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
-import com.aps.weather.demo.service.ApiException;
+import com.aps.weather.demo.exception.ApiException;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

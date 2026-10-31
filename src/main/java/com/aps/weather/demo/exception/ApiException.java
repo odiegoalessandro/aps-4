@@ -1,4 +1,4 @@
-package com.aps.weather.demo.service;
+package com.aps.weather.demo.exception;
 
 public class ApiException extends Exception {
     private final int status;

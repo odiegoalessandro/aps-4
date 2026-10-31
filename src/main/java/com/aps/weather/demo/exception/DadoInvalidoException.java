@@ -1,4 +1,4 @@
-package com.aps.weather.demo.service;
+package com.aps.weather.demo.exception;
 
 public class DadoInvalidoException extends Exception {
     public DadoInvalidoException(String mensagem) {

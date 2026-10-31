@@ -1,6 +1,8 @@
 -- Schema inicial, espelhando o DDL que o Hibernate gerava com ddl-auto=update.
 -- "id INTEGER" é obrigatório no SQLite: só essa grafia exata é alias de rowid e
--- portanto auto-incrementa (ver ApsSQLiteDialect).
+-- portanto auto-incrementa; BIGINT aqui não geraria ids. A diferença entre esse
+-- tipo e o BIGINT esperado pelo mapeamento Long é aceita na validação de schema
+-- pelo ApsSQLiteDialect (ver docs/adr/0002-dialeto-sqlite.md).
 CREATE TABLE locations (
     id       INTEGER      NOT NULL,
     city     VARCHAR(150) NOT NULL,

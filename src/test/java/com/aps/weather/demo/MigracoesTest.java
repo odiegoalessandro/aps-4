@@ -119,6 +119,54 @@ class MigracoesTest {
                 .hasMessageContaining("city_normalizada deve ser preenchida");
     }
 
+    @Test
+    void v6CriaPrevisaoHorariaComUnicidadeEPresencaDeLocalizacao() throws Exception {
+        String url = migrarAte("5");
+        executar(url, localizacao(40));
+        migrarTudo(url);
+
+        String horaria = """
+                INSERT INTO hourly_forecasts (location_id, forecast_at, temperature, updated_at)
+                VALUES (%d, '2026-11-02 00:00:00', 20, '2026-11-02 00:00:00')
+                """;
+
+        executar(url, horaria.formatted(40));
+
+        assertThat(contar(url, "SELECT COUNT(*) FROM hourly_forecasts")).isEqualTo(1);
+        assertViolacaoDeUnicidade(url, horaria.formatted(40));
+        assertThatThrownBy(() -> executar(url, horaria.formatted(999)))
+                .isInstanceOf(SQLException.class)
+                .hasMessageContaining("FOREIGN KEY constraint failed");
+    }
+
+    @Test
+    void v6CriaPrevisaoDiariaComUnicidadeEPresencaDeLocalizacao() throws Exception {
+        String url = migrarAte("5");
+        executar(url, localizacao(41));
+        migrarTudo(url);
+
+        String diaria = """
+                INSERT INTO daily_forecasts
+                    (location_id, forecast_date, min_temperature, max_temperature, updated_at)
+                VALUES (%d, '2026-11-02', 18, 27, '2026-11-02 00:00:00')
+                """;
+
+        executar(url, diaria.formatted(41));
+
+        assertThat(contar(url, "SELECT COUNT(*) FROM daily_forecasts")).isEqualTo(1);
+        assertViolacaoDeUnicidade(url, diaria.formatted(41));
+        assertThatThrownBy(() -> executar(url, diaria.formatted(999)))
+                .isInstanceOf(SQLException.class)
+                .hasMessageContaining("FOREIGN KEY constraint failed");
+    }
+
+    private static String localizacao(long id) {
+        return """
+                INSERT INTO locations (id, city, city_normalizada, latitude, longitude, timezone)
+                VALUES (%d, 'Cidade %d', 'cidade %d', -1.0, -2.0, 'UTC')
+                """.formatted(id, id, id);
+    }
+
     private String migrarAte(String versao) {
         String url = urlDoBanco(versao);
         // Produção roda com PRAGMA foreign_keys=ON (connection-init-sql do Hikari);

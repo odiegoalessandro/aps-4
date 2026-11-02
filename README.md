@@ -155,6 +155,20 @@ reaproveitam o snapshot por até `app.weather.forecast.ttl-ms` (15 minutos). Nã
 agendada — a renovação é sob demanda. Se a fonte falhar e houver snapshot anterior, ele é
 servido mesmo vencido; sem snapshot, o erro da fonte é propagado.
 
+## Documentação da API
+
+As rotas são documentadas com Spring REST Docs a partir dos próprios testes HTTP
+(`ApiDocumentationTests`). O build gera a página em `target/generated-docs/index.html`:
+
+```bash
+./mvnw verify
+open target/generated-docs/index.html
+```
+
+O fonte fica em `src/docs/asciidoc/index.adoc` e os snippets em
+`target/generated-snippets/`. Como os exemplos vêm dos testes, a documentação acompanha
+o contrato real da API.
+
 ## Observabilidade
 
 O Actuator expõe apenas endpoints de leitura (`management.endpoints.web.exposure.include`):

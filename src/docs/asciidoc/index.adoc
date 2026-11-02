@@ -1,0 +1,105 @@
+= API de Clima
+:doctype: book
+:toc: left
+:toclevels: 3
+:sectanchors:
+:source-highlighter: rouge
+
+Esta é a documentação das rotas HTTP da aplicação. Os exemplos de request e response
+são gerados diretamente dos testes (`ApiDocumentationTests`) pelo Spring REST Docs, de
+modo que a documentação acompanha o contrato real da API.
+
+O nome da cidade é resolvido sem diferenciar maiúsculas nem acentos, e a resposta sempre
+respeita o fuso horário cadastrado para a cidade.
+
+== Cidades
+
+=== Listar cidades
+
+Retorna as cidades cadastradas que podem ser consultadas nas demais rotas.
+
+operation::cities/listar[]
+
+== Clima atual
+
+=== Consultar a última previsão
+
+Devolve a previsão mais recente já gravada para a cidade. Se ainda não houver coleta,
+a resposta é `404`.
+
+operation::weather/atual[]
+
+=== Histórico paginado
+
+Devolve as previsões gravadas da cidade, da mais recente para a mais antiga.
+
+operation::weather/historico[]
+
+== Previsões
+
+Estas rotas usam leitura _read-through_ sobre o SQLite: a primeira requisição de cada
+cidade consulta a fonte, grava o snapshot e responde; as seguintes reaproveitam o
+snapshot por até `app.weather.forecast.ttl-ms` (15 minutos por padrão). A renovação é
+sob demanda, sem coleta agendada. Se a fonte falhar e houver snapshot anterior completo,
+ele é servido mesmo vencido; sem snapshot completo, o erro da fonte é propagado.
+
+=== Temperaturas hora a hora
+
+Devolve exatamente as 24 temperaturas previstas para o dia atual no fuso da cidade,
+em ordem cronológica. Serve para alimentar o gráfico de linhas.
+
+operation::weather/horarias[]
+
+=== Mínimas e máximas
+
+Devolve a previsão de mínima e máxima para os próximos 7 dias, incluindo hoje, no fuso
+da cidade. Serve para alimentar os cards de previsão diária.
+
+operation::weather/diarias[]
+
+== Coleta
+
+As rotas de coleta gravam as condições atuais da fonte. Elas são operacionais e não
+são necessárias para consumir as previsões horárias e diárias.
+
+=== Coletar todas as cidades
+
+Coleta uma cidade por vez e relata o que foi gravado e o que falhou. Responde `200`
+quando tudo foi gravado, `207 Multi-Status` quando houve gravação e falha, e `502`
+quando todas as tentativas falharam.
+
+operation::collect/todas[]
+
+=== Coletar uma cidade
+
+Coleta e grava as condições atuais de uma única cidade.
+
+operation::collect/cidade[]
+
+== Tratamento de erros
+
+Os erros seguem o formato RFC 7807 (`application/problem+json`):
+
+[cols="1,4",options="header"]
+|===
+| Status | Quando ocorre
+
+| `400` | Cidade ausente ou inválida, parâmetro de paginação inválido.
+| `404` | Cidade não cadastrada ou sem previsão/coleta disponível.
+| `422` | A fonte respondeu com dados inválidos ou incompletos (por exemplo, menos de 24 horas ou menos de 7 dias).
+| `502` | Falha de comunicação com a fonte externa.
+| `503` | Banco de dados indisponível ou operação interrompida.
+|===
+
+Exemplo de corpo de erro:
+
+[source,json]
+----
+{
+  "type": "about:blank",
+  "title": "Falha ao consultar a fonte de clima",
+  "status": 502,
+  "detail": "API respondeu com status 500",
+  "instance": "/api/weather/S%C3%A3o%20Paulo/hourly"
+}
+----

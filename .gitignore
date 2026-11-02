@@ -41,7 +41,7 @@ build/
 
 ### Agent skills — dev-only, never commit ###
 .scratch/
-docs/
+/docs/
 CONTEXT.md
 CONTEXT-MAP.md
 CLAUDE.md

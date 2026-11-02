@@ -1,6 +1,6 @@
 package com.aps.weather.demo;
 
-import com.aps.weather.demo.client.FonteDeClima;
+import com.aps.weather.demo.client.ClienteSimulado;
 import com.aps.weather.demo.exception.ApiException;
 import com.aps.weather.demo.exception.DadoInvalidoException;
 import jakarta.persistence.PersistenceException;
@@ -38,7 +38,7 @@ class ApiErrorTests {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private FonteDeClima fonte;
+    private ClienteSimulado fonte;
 
     @Test
     void dadoInvalidoVira422ComTituloDeDadosInvalidos() throws Exception {

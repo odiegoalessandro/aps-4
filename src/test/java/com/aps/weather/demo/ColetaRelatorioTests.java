@@ -1,6 +1,6 @@
 package com.aps.weather.demo;
 
-import com.aps.weather.demo.client.FonteDeClima;
+import com.aps.weather.demo.client.ClienteSimulado;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
 import com.aps.weather.demo.repository.PrevisaoRepository;
@@ -36,7 +36,7 @@ class ColetaRelatorioTests {
     private PrevisaoRepository previsaoRepository;
 
     @MockitoBean
-    private FonteDeClima fonte;
+    private ClienteSimulado fonte;
 
     @BeforeEach
     void limparPrevisoes() {

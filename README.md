@@ -37,6 +37,8 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--app.weather.source=simulada -
 | `app.weather.openmeteo.base-url` | `https://api.open-meteo.com/v1/forecast` | URL base da API Open-Meteo |
 | `app.weather.openmeteo.timeout-ms` | `10000` | Timeout de cada requisição ao Open-Meteo |
 | `app.weather.openmeteo.retry-backoff-ms` | `1000` | Espera base entre tentativas (dobra a cada retry) |
+| `app.weather.timezone.default` | `America/Sao_Paulo` | Fuso usado quando a localização não tem timezone |
+| `app.weather.forecast.ttl-ms` | `900000` | Validade do snapshot de previsões horárias/diárias |
 | `spring.datasource.url` | `jdbc:sqlite:estacao.db` | Arquivo do banco |
 
 ## Endpoints
@@ -46,6 +48,8 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--app.weather.source=simulada -
 | GET | `/api/cities` | Lista as cidades cadastradas |
 | GET | `/api/weather/{city}` | Última previsão gravada da cidade |
 | GET | `/api/weather/{city}/history` | Histórico paginado da cidade (`?page=0&size=50`, teto 200) |
+| GET | `/api/weather/{city}/hourly` | Temperaturas previstas hora a hora para o dia atual |
+| GET | `/api/weather/{city}/daily` | Mínimas e máximas para os próximos 7 dias, incluindo hoje |
 | POST | `/api/collect` | Coleta todas as cidades e relata gravações e falhas |
 | POST | `/api/collect/{city}` | Coleta e grava previsões de uma cidade |
 
@@ -61,6 +65,10 @@ curl http://localhost:8080/api/cities
 curl "http://localhost:8080/api/weather/S%C3%A3o%20Paulo"
 
 curl "http://localhost:8080/api/weather/S%C3%A3o%20Paulo/history?page=0&size=20"
+
+curl "http://localhost:8080/api/weather/S%C3%A3o%20Paulo/hourly"
+
+curl "http://localhost:8080/api/weather/S%C3%A3o%20Paulo/daily"
 
 curl -X POST http://localhost:8080/api/collect
 
@@ -115,6 +123,37 @@ Resposta do histórico paginado:
 ```
 
 Os itens vêm ordenados por `forecastAt` decrescente (empate desfeito pelo `id` decrescente).
+
+Resposta de `/hourly` (24 temperaturas do dia atual no fuso da cidade):
+
+```json
+{
+  "date": "2026-11-02",
+  "timezone": "America/Sao_Paulo",
+  "temperatures": [
+    { "time": "00:00", "temperature": 19.5 },
+    { "time": "01:00", "temperature": 19.2 }
+  ]
+}
+```
+
+Resposta de `/daily` (7 dias a partir de hoje, no fuso da cidade):
+
+```json
+{
+  "timezone": "America/Sao_Paulo",
+  "forecast": [
+    { "date": "2026-11-02", "minTemperature": 18.0, "maxTemperature": 27.0 },
+    { "date": "2026-11-03", "minTemperature": 19.0, "maxTemperature": 30.0 }
+  ]
+}
+```
+
+As previsões horárias e diárias usam leitura *read-through* sobre o SQLite: a primeira
+requisição de cada cidade consulta a Open-Meteo, grava o snapshot e responde; as seguintes
+reaproveitam o snapshot por até `app.weather.forecast.ttl-ms` (15 minutos). Não há coleta
+agendada — a renovação é sob demanda. Se a fonte falhar e houver snapshot anterior, ele é
+servido mesmo vencido; sem snapshot, o erro da fonte é propagado.
 
 ## Observabilidade
 

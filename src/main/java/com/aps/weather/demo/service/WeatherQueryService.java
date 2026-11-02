@@ -1,13 +1,13 @@
 package com.aps.weather.demo.service;
 
+import com.aps.weather.demo.dao.LocalizacaoDao;
+import com.aps.weather.demo.dao.PrevisaoDao;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.NomeDeCidade;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
 import com.aps.weather.demo.exception.CidadeNaoEncontradaException;
 import com.aps.weather.demo.exception.RequisicaoInvalidaException;
 import com.aps.weather.demo.exception.SemDadosClimaticosException;
-import com.aps.weather.demo.repository.LocalizacaoRepository;
-import com.aps.weather.demo.repository.PrevisaoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,22 +28,21 @@ public class WeatherQueryService {
     private static final Sort ORDEM_HISTORICO =
             Sort.by(Sort.Order.desc("forecastAt"), Sort.Order.desc("id"));
 
-    private final LocalizacaoRepository localizacaoRepository;
-    private final PrevisaoRepository previsaoRepository;
+    private final LocalizacaoDao localizacaoDao;
+    private final PrevisaoDao previsaoDao;
 
-    public WeatherQueryService(LocalizacaoRepository localizacaoRepository,
-                               PrevisaoRepository previsaoRepository) {
-        this.localizacaoRepository = localizacaoRepository;
-        this.previsaoRepository = previsaoRepository;
+    public WeatherQueryService(LocalizacaoDao localizacaoDao, PrevisaoDao previsaoDao) {
+        this.localizacaoDao = localizacaoDao;
+        this.previsaoDao = previsaoDao;
     }
 
     public List<Localizacao> listarCidades() {
-        return localizacaoRepository.findAllByOrderByCityAsc();
+        return localizacaoDao.listar();
     }
 
     public Localizacao buscarCidade(String cidade) {
         String nome = validarCidade(cidade);
-        return localizacaoRepository.findByCityNormalizada(NomeDeCidade.normalizar(nome))
+        return localizacaoDao.buscarPorNomeNormalizado(NomeDeCidade.normalizar(nome))
                 .orElseThrow(() -> new CidadeNaoEncontradaException(nome));
     }
 
@@ -61,7 +60,7 @@ public class WeatherQueryService {
 
     public PrevisaoDoCLima ultimaPrevisao(String cidade) {
         Localizacao local = buscarCidade(cidade);
-        return previsaoRepository.findFirstByLocationOrderByForecastAtDesc(local)
+        return previsaoDao.ultimaDe(local)
                 .orElseThrow(() -> new SemDadosClimaticosException(cidade));
     }
 
@@ -75,6 +74,6 @@ public class WeatherQueryService {
 
         Localizacao local = buscarCidade(cidade);
         Pageable pageable = PageRequest.of(page, Math.min(size, TAMANHO_MAXIMO_PAGINA), ORDEM_HISTORICO);
-        return previsaoRepository.findByLocation(local, pageable);
+        return previsaoDao.historicoDe(local, pageable);
     }
 }

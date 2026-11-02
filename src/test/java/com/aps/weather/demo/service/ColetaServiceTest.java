@@ -1,10 +1,10 @@
 package com.aps.weather.demo.service;
 
 import com.aps.weather.demo.client.FonteDeClima;
+import com.aps.weather.demo.dao.LocalizacaoDao;
+import com.aps.weather.demo.dao.PrevisaoDao;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
-import com.aps.weather.demo.repository.LocalizacaoRepository;
-import com.aps.weather.demo.repository.PrevisaoRepository;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,9 +30,9 @@ class ColetaServiceTest {
     @Mock
     private FonteDeClima fonte;
     @Mock
-    private LocalizacaoRepository localizacoes;
+    private LocalizacaoDao localizacoes;
     @Mock
-    private PrevisaoRepository previsoes;
+    private PrevisaoDao previsoes;
 
     @Test
     void corridaDeCriacaoUsaACidadeQueVenceuNoBanco() throws Exception {
@@ -40,12 +40,12 @@ class ColetaServiceTest {
         Localizacao existente = new Localizacao("São Paulo", -23.55, -46.63, "America/Sao_Paulo");
         ColetaService servico = new ColetaService(fonte, localizacoes, previsoes, true, new SimpleMeterRegistry());
 
-        when(localizacoes.findByCityNormalizada("sao paulo"))
+        when(localizacoes.buscarPorNomeNormalizado("sao paulo"))
                 .thenReturn(Optional.empty(), Optional.of(existente));
-        when(localizacoes.saveAndFlush(desejada))
+        when(localizacoes.salvarEFlushar(desejada))
                 .thenThrow(new DataIntegrityViolationException("ux_location_city_normalizada"));
         when(fonte.buscar(existente)).thenAnswer(chamada -> previsao(chamada.getArgument(0)));
-        when(previsoes.existsByLocationAndForecastAt(any(), any())).thenReturn(false);
+        when(previsoes.existePara(any(), any())).thenReturn(false);
 
         List<PrevisaoDoCLima> gravadas = servico.coletarCidade(desejada);
 
@@ -59,8 +59,8 @@ class ColetaServiceTest {
         DataIntegrityViolationException erro = new DataIntegrityViolationException("falhou");
         ColetaService servico = new ColetaService(fonte, localizacoes, previsoes, true, new SimpleMeterRegistry());
 
-        when(localizacoes.findByCityNormalizada("sem par")).thenReturn(Optional.empty());
-        when(localizacoes.saveAndFlush(desejada)).thenThrow(erro);
+        when(localizacoes.buscarPorNomeNormalizado("sem par")).thenReturn(Optional.empty());
+        when(localizacoes.salvarEFlushar(desejada)).thenThrow(erro);
 
         assertThatThrownBy(() -> servico.coletarCidade(desejada)).isSameAs(erro);
     }
@@ -70,10 +70,10 @@ class ColetaServiceTest {
         Localizacao local = new Localizacao("São Paulo", -23.55, -46.63, "America/Sao_Paulo");
         ColetaService servico = new ColetaService(fonte, localizacoes, previsoes, true, new SimpleMeterRegistry());
 
-        when(localizacoes.findByCityNormalizada("sao paulo")).thenReturn(Optional.of(local));
+        when(localizacoes.buscarPorNomeNormalizado("sao paulo")).thenReturn(Optional.of(local));
         when(fonte.buscar(local)).thenAnswer(chamada -> previsao(chamada.getArgument(0)));
-        when(previsoes.existsByLocationAndForecastAt(any(), any())).thenReturn(false);
-        when(previsoes.save(any())).thenThrow(new DataIntegrityViolationException(
+        when(previsoes.existePara(any(), any())).thenReturn(false);
+        when(previsoes.salvar(any())).thenThrow(new DataIntegrityViolationException(
                 "could not execute statement",
                 new SQLException("UNIQUE constraint failed: weather_forecasts.location_id,"
                         + " weather_forecasts.forecast_at")));
@@ -89,10 +89,10 @@ class ColetaServiceTest {
                 new SQLException("UNIQUE constraint failed: locations.city_normalizada"));
         ColetaService servico = new ColetaService(fonte, localizacoes, previsoes, true, new SimpleMeterRegistry());
 
-        when(localizacoes.findByCityNormalizada("sem par")).thenReturn(Optional.of(local));
+        when(localizacoes.buscarPorNomeNormalizado("sem par")).thenReturn(Optional.of(local));
         when(fonte.buscar(local)).thenAnswer(chamada -> previsao(chamada.getArgument(0)));
-        when(previsoes.existsByLocationAndForecastAt(any(), any())).thenReturn(false);
-        when(previsoes.save(any())).thenThrow(erro);
+        when(previsoes.existePara(any(), any())).thenReturn(false);
+        when(previsoes.salvar(any())).thenThrow(erro);
 
         assertThatThrownBy(() -> servico.coletarCidade(local)).isSameAs(erro);
     }

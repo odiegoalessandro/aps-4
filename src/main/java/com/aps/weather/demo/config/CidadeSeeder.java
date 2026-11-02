@@ -1,8 +1,8 @@
 package com.aps.weather.demo.config;
 
+import com.aps.weather.demo.dao.LocalizacaoDao;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.NomeDeCidade;
-import com.aps.weather.demo.repository.LocalizacaoRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
@@ -16,19 +16,19 @@ public class CidadeSeeder implements ApplicationRunner {
 
     private static final Logger LOG = LoggerFactory.getLogger(CidadeSeeder.class);
 
-    private final LocalizacaoRepository localizacaoRepository;
+    private final LocalizacaoDao localizacaoDao;
 
-    public CidadeSeeder(LocalizacaoRepository localizacaoRepository) {
-        this.localizacaoRepository = localizacaoRepository;
+    public CidadeSeeder(LocalizacaoDao localizacaoDao) {
+        this.localizacaoDao = localizacaoDao;
     }
 
     @Override
     public void run(ApplicationArguments args) {
         int novas = 0;
         for (Localizacao cidade : cidadesIniciais()) {
-            if (localizacaoRepository.findByCityNormalizada(
+            if (localizacaoDao.buscarPorNomeNormalizado(
                     NomeDeCidade.normalizar(cidade.getCity())).isEmpty()) {
-                localizacaoRepository.save(cidade);
+                localizacaoDao.salvar(cidade);
                 novas++;
             }
         }

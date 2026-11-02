@@ -1,13 +1,13 @@
 package com.aps.weather.demo.service;
 
 import com.aps.weather.demo.client.FonteDeClima;
+import com.aps.weather.demo.dao.LocalizacaoDao;
+import com.aps.weather.demo.dao.PrevisaoDao;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.NomeDeCidade;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
 import com.aps.weather.demo.exception.ApiException;
 import com.aps.weather.demo.exception.DadoInvalidoException;
-import com.aps.weather.demo.repository.LocalizacaoRepository;
-import com.aps.weather.demo.repository.PrevisaoRepository;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import tools.jackson.core.JacksonException;
@@ -34,8 +34,8 @@ public class ColetaService {
     private static final int LIMITE_ALERTA = 5;
 
     private final FonteDeClima fonte;
-    private final LocalizacaoRepository localizacaoRepository;
-    private final PrevisaoRepository previsaoRepository;
+    private final LocalizacaoDao localizacaoDao;
+    private final PrevisaoDao previsaoDao;
     private final boolean pularRepetidos;
     private final MeterRegistry meterRegistry;
     private final Timer tempoLote;
@@ -45,13 +45,13 @@ public class ColetaService {
     private final Map<String, Integer> falhasSeguidas = new ConcurrentHashMap<>();
 
     public ColetaService(FonteDeClima fonte,
-                         LocalizacaoRepository localizacaoRepository,
-                         PrevisaoRepository previsaoRepository,
+                         LocalizacaoDao localizacaoDao,
+                         PrevisaoDao previsaoDao,
                          @Value("${app.weather.collection.pular-repetidos:true}") boolean pularRepetidos,
                          MeterRegistry meterRegistry) {
         this.fonte = fonte;
-        this.localizacaoRepository = localizacaoRepository;
-        this.previsaoRepository = previsaoRepository;
+        this.localizacaoDao = localizacaoDao;
+        this.previsaoDao = previsaoDao;
         this.pularRepetidos = pularRepetidos;
         this.meterRegistry = meterRegistry;
         this.tempoLote = Timer.builder("aps.weather.collect")
@@ -69,7 +69,7 @@ public class ColetaService {
         try {
             List<PrevisaoDoCLima> gravadas = new ArrayList<>();
             List<FalhaColeta> falhas = new ArrayList<>();
-            for (Localizacao cidade : localizacaoRepository.findAllByOrderByCityAsc()) {
+            for (Localizacao cidade : localizacaoDao.listar()) {
                 try {
                     gravadas.addAll(coletarCidade(cidade));
                 } catch (InterruptedException e) {
@@ -97,14 +97,14 @@ public class ColetaService {
             Localizacao local = garantirLocalizacao(cidade);
             PrevisaoDoCLima previsao = fonte.buscar(local);
 
-            if (pularRepetidos && previsaoRepository.existsByLocationAndForecastAt(local, previsao.getForecastAt())) {
+            if (pularRepetidos && previsaoDao.existePara(local, previsao.getForecastAt())) {
                 LOG.info("{}: sem dado novo da API, não gravado", nome);
                 registrarSucesso(nome);
                 return List.of();
             }
 
             try {
-                previsaoRepository.save(previsao);
+                previsaoDao.salvar(previsao);
             } catch (DataIntegrityViolationException e) {
                 // outra coleta gravou o mesmo horário entre o exists e o save
                 if (!ehCorridaDePrevisao(e)) {
@@ -126,7 +126,7 @@ public class ColetaService {
 
     private Localizacao garantirLocalizacao(Localizacao cidade) {
         String normalizada = NomeDeCidade.normalizar(cidade.getCity());
-        return localizacaoRepository.findByCityNormalizada(normalizada)
+        return localizacaoDao.buscarPorNomeNormalizado(normalizada)
                 .orElseGet(() -> salvarCidade(cidade, normalizada));
     }
 
@@ -137,9 +137,9 @@ public class ColetaService {
      */
     private Localizacao salvarCidade(Localizacao cidade, String normalizada) {
         try {
-            return localizacaoRepository.saveAndFlush(cidade);
+            return localizacaoDao.salvarEFlushar(cidade);
         } catch (DataIntegrityViolationException e) {
-            return localizacaoRepository.findByCityNormalizada(normalizada)
+            return localizacaoDao.buscarPorNomeNormalizado(normalizada)
                     .orElseThrow(() -> e);
         }
     }

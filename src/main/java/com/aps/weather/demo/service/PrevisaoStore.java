@@ -1,18 +1,15 @@
 package com.aps.weather.demo.service;
 
+import com.aps.weather.demo.dao.PrevisaoDiariaDao;
+import com.aps.weather.demo.dao.PrevisaoHorariaDao;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.PrevisaoDiaria;
 import com.aps.weather.demo.domain.PrevisaoHoraria;
-import com.aps.weather.demo.repository.PrevisaoDiariaRepository;
-import com.aps.weather.demo.repository.PrevisaoHorariaRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Acesso às previsões persistidas. Cada coleta substitui o snapshot inteiro da
@@ -22,45 +19,27 @@ import java.util.Map;
 @Component
 public class PrevisaoStore {
 
-    private final PrevisaoHorariaRepository horariaRepository;
-    private final PrevisaoDiariaRepository diariaRepository;
+    private final PrevisaoHorariaDao horariaDao;
+    private final PrevisaoDiariaDao diariaDao;
 
-    public PrevisaoStore(PrevisaoHorariaRepository horariaRepository,
-                         PrevisaoDiariaRepository diariaRepository) {
-        this.horariaRepository = horariaRepository;
-        this.diariaRepository = diariaRepository;
+    public PrevisaoStore(PrevisaoHorariaDao horariaDao, PrevisaoDiariaDao diariaDao) {
+        this.horariaDao = horariaDao;
+        this.diariaDao = diariaDao;
     }
 
-    @Transactional(readOnly = true)
     public List<PrevisaoHoraria> horarias(Localizacao local, Instant inicio, Instant fim) {
-        return horariaRepository
-                .findByLocationAndForecastAtGreaterThanEqualAndForecastAtLessThanOrderByForecastAtAsc(
-                        local, inicio, fim);
+        return horariaDao.snapshotDe(local, inicio, fim);
     }
 
-    @Transactional(readOnly = true)
     public List<PrevisaoDiaria> diarias(Localizacao local, LocalDate inicio, LocalDate fim) {
-        return diariaRepository
-                .findByLocationAndForecastDateBetweenOrderByForecastDateAsc(local, inicio, fim);
+        return diariaDao.snapshotDe(local, inicio, fim);
     }
 
-    @Transactional
     public void substituirHorarias(Localizacao local, List<PrevisaoHoraria> previsoes) {
-        horariaRepository.apagarPorLocalizacao(local);
-        Map<Instant, PrevisaoHoraria> porHorario = new LinkedHashMap<>();
-        for (PrevisaoHoraria previsao : previsoes) {
-            porHorario.put(previsao.getForecastAt(), previsao);
-        }
-        horariaRepository.saveAll(porHorario.values());
+        horariaDao.substituirSnapshot(local, previsoes);
     }
 
-    @Transactional
     public void substituirDiarias(Localizacao local, List<PrevisaoDiaria> previsoes) {
-        diariaRepository.apagarPorLocalizacao(local);
-        Map<LocalDate, PrevisaoDiaria> porData = new LinkedHashMap<>();
-        for (PrevisaoDiaria previsao : previsoes) {
-            porData.put(previsao.getForecastDate(), previsao);
-        }
-        diariaRepository.saveAll(porData.values());
+        diariaDao.substituirSnapshot(local, previsoes);
     }
 }

@@ -15,7 +15,13 @@ public interface PrevisaoHorariaRepository extends JpaRepository<PrevisaoHoraria
     List<PrevisaoHoraria> findByLocationAndForecastAtGreaterThanEqualAndForecastAtLessThanOrderByForecastAtAsc(
             Localizacao location, Instant inicio, Instant fim);
 
-    @Modifying
+    /**
+     * O clear/flush automático evita que entidades ainda gerenciadas colidam com os
+     * ids reutilizados pelo SQLite quando o snapshot é substituído mais de uma vez na
+     * mesma transação. Efeito colateral: o contexto de persistência é limpo, então o
+     * chamador não deve reutilizar entidades carregadas antes desta chamada.
+     */
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from PrevisaoHoraria p where p.location = :location")
     void apagarPorLocalizacao(@Param("location") Localizacao location);
 }

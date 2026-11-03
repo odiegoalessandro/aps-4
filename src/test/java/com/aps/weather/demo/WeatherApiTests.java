@@ -1,5 +1,6 @@
 package com.aps.weather.demo;
 
+import com.aps.weather.demo.repository.LocalizacaoRepository;
 import com.aps.weather.demo.repository.PrevisaoRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ class WeatherApiTests {
     private MockMvc mockMvc;
 
     @Autowired
+    private LocalizacaoRepository localizacaoRepository;
+
+    @Autowired
     private PrevisaoRepository previsaoRepository;
 
     @Test
@@ -34,7 +38,8 @@ class WeatherApiTests {
 
         mockMvc.perform(post("/api/collect"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gravadas.length()").value(5))
+                .andExpect(jsonPath("$.gravadas.length()")
+                        .value((int) localizacaoRepository.count()))
                 .andExpect(jsonPath("$.falhas.length()").value(0));
 
         mockMvc.perform(get("/api/weather/{city}", "São Paulo"))
@@ -52,7 +57,8 @@ class WeatherApiTests {
 
         mockMvc.perform(get("/api/cities"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(5));
+                .andExpect(jsonPath("$.length()")
+                        .value((int) localizacaoRepository.count()));
 
         // O simulador trunca o horário em segundos: duas coletas no mesmo segundo
         // colidiriam no índice único, então limpamos antes da coleta individual.

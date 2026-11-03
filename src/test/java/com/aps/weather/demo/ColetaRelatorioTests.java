@@ -3,6 +3,7 @@ package com.aps.weather.demo;
 import com.aps.weather.demo.client.ClienteSimulado;
 import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.domain.PrevisaoDoCLima;
+import com.aps.weather.demo.repository.LocalizacaoRepository;
 import com.aps.weather.demo.repository.PrevisaoRepository;
 import com.aps.weather.demo.exception.ApiException;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,9 @@ class ColetaRelatorioTests {
     private MockMvc mockMvc;
 
     @Autowired
+    private LocalizacaoRepository localizacaoRepository;
+
+    @Autowired
     private PrevisaoRepository previsaoRepository;
 
     @MockitoBean
@@ -49,7 +53,8 @@ class ColetaRelatorioTests {
 
         mockMvc.perform(post("/api/collect"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.gravadas.length()").value(5))
+                .andExpect(jsonPath("$.gravadas.length()")
+                        .value((int) localizacaoRepository.count()))
                 .andExpect(jsonPath("$.falhas.length()").value(0));
     }
 
@@ -61,7 +66,8 @@ class ColetaRelatorioTests {
 
         mockMvc.perform(post("/api/collect"))
                 .andExpect(status().is(207))
-                .andExpect(jsonPath("$.gravadas.length()").value(4))
+                .andExpect(jsonPath("$.gravadas.length()")
+                        .value((int) localizacaoRepository.count() - 1))
                 .andExpect(jsonPath("$.falhas.length()").value(1))
                 .andExpect(jsonPath("$.falhas[0].cidade").value("Rio de Janeiro"))
                 .andExpect(jsonPath("$.falhas[0].motivo").value(containsString("status 500")));
@@ -74,7 +80,8 @@ class ColetaRelatorioTests {
         mockMvc.perform(post("/api/collect"))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.gravadas.length()").value(0))
-                .andExpect(jsonPath("$.falhas.length()").value(5))
+                .andExpect(jsonPath("$.falhas.length()")
+                        .value((int) localizacaoRepository.count()))
                 .andExpect(jsonPath("$.falhas[0].cidade").isNotEmpty())
                 .andExpect(jsonPath("$.falhas[0].motivo").value(containsString("status 503")));
     }

@@ -16,7 +16,11 @@ mvn spring-boot:run
 ```
 
 A aplicação sobe em `http://localhost:8080`, cria/atualiza o banco `estacao.db` e cadastra as
-cinco cidades iniciais: São Paulo, Rio de Janeiro, Brasília, Salvador e Porto Alegre.
+cidades iniciais: São Paulo, Rio de Janeiro, Brasília, Salvador e Porto Alegre, além das
+principais cidades do estado de São Paulo (Barueri, Bauru, Campinas, Diadema, Franca, Guarulhos,
+Jundiaí, Limeira, Marília, Mauá, Osasco, Piracicaba, Praia Grande, Ribeirão Preto, Santo André,
+Santos, São Bernardo do Campo, São José do Rio Preto, São José dos Campos, Sorocaba, Suzano e
+Taubaté). O cadastro é idempotente: cidades já existentes são preservadas.
 
 Para rodar sem rede, usando a fonte simulada:
 

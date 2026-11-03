@@ -4,6 +4,7 @@ import com.aps.weather.demo.api.dto.HistoricoResponse;
 import com.aps.weather.demo.api.dto.PrevisaoDiariaResponse;
 import com.aps.weather.demo.api.dto.PrevisaoHorariaResponse;
 import com.aps.weather.demo.api.dto.PrevisaoResponse;
+import com.aps.weather.demo.domain.Localizacao;
 import com.aps.weather.demo.service.PrevisaoService;
 import com.aps.weather.demo.service.WeatherQueryService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,5 +46,31 @@ public class WeatherController {
     @GetMapping("/{city}/daily")
     public PrevisaoDiariaResponse diarias(@PathVariable String city) throws Exception {
         return PrevisaoDiariaResponse.from(previsaoService.diarias(city));
+    }
+
+    @GetMapping("/id/{id}")
+    public PrevisaoResponse ultimaPorId(@PathVariable Long id) {
+        return PrevisaoResponse.from(weatherQueryService.ultimaPrevisao(local(id)));
+    }
+
+    @GetMapping("/id/{id}/history")
+    public HistoricoResponse historicoPorId(@PathVariable Long id,
+                                            @RequestParam(defaultValue = "0") int page,
+                                            @RequestParam(defaultValue = "50") int size) {
+        return HistoricoResponse.from(weatherQueryService.historico(local(id), page, size));
+    }
+
+    @GetMapping("/id/{id}/hourly")
+    public PrevisaoHorariaResponse horariasPorId(@PathVariable Long id) throws Exception {
+        return PrevisaoHorariaResponse.from(previsaoService.horarias(local(id)));
+    }
+
+    @GetMapping("/id/{id}/daily")
+    public PrevisaoDiariaResponse diariasPorId(@PathVariable Long id) throws Exception {
+        return PrevisaoDiariaResponse.from(previsaoService.diarias(local(id)));
+    }
+
+    private Localizacao local(Long id) {
+        return weatherQueryService.buscarCidadePorId(id);
     }
 }

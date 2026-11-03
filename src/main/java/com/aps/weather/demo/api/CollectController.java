@@ -49,6 +49,16 @@ public class CollectController {
     @PostMapping("/{city}")
     public List<PrevisaoResponse> coletarCidade(@PathVariable String city) throws Exception {
         Localizacao local = weatherQueryService.buscarCidade(city);
+        return coletar(local);
+    }
+
+    @PostMapping("/id/{id}")
+    public List<PrevisaoResponse> coletarCidadePorId(@PathVariable Long id) throws Exception {
+        Localizacao local = weatherQueryService.buscarCidadePorId(id);
+        return coletar(local);
+    }
+
+    private List<PrevisaoResponse> coletar(Localizacao local) throws Exception {
         return coletaService.coletarCidade(local).stream()
                 .map(PrevisaoResponse::from)
                 .toList();

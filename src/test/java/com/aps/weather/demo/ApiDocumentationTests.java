@@ -179,9 +179,9 @@ class ApiDocumentationTests {
         Long id = cidadeId();
         coletarPorId(id);
 
-        mockMvc.perform(get("/api/cities/{id}/weather", id))
+        mockMvc.perform(get("/api/weather/id/{id}", id))
                 .andExpect(status().isOk())
-                .andDo(document("cities/weather-por-id",
+                .andDo(document("weather/atual-por-id",
                         preprocessResponse(prettyPrint()),
                         pathParameters(parameterWithName("id")
                                 .description("Identificador da cidade")),
@@ -193,11 +193,11 @@ class ApiDocumentationTests {
         Long id = cidadeId();
         coletarPorId(id);
 
-        mockMvc.perform(get("/api/cities/{id}/history", id)
+        mockMvc.perform(get("/api/weather/id/{id}/history", id)
                         .param("page", "0")
                         .param("size", "20"))
                 .andExpect(status().isOk())
-                .andDo(document("cities/historico-por-id",
+                .andDo(document("weather/historico-por-id",
                         preprocessResponse(prettyPrint()),
                         pathParameters(parameterWithName("id")
                                 .description("Identificador da cidade")),
@@ -213,9 +213,9 @@ class ApiDocumentationTests {
     void temperaturasHorariasPorId() throws Exception {
         Long id = cidadeId();
 
-        mockMvc.perform(get("/api/cities/{id}/hourly", id))
+        mockMvc.perform(get("/api/weather/id/{id}/hourly", id))
                 .andExpect(status().isOk())
-                .andDo(document("cities/horarias-por-id",
+                .andDo(document("weather/horarias-por-id",
                         preprocessResponse(prettyPrint()),
                         pathParameters(parameterWithName("id")
                                 .description("Identificador da cidade")),
@@ -226,9 +226,9 @@ class ApiDocumentationTests {
     void temperaturasDiariasPorId() throws Exception {
         Long id = cidadeId();
 
-        mockMvc.perform(get("/api/cities/{id}/daily", id))
+        mockMvc.perform(get("/api/weather/id/{id}/daily", id))
                 .andExpect(status().isOk())
-                .andDo(document("cities/diarias-por-id",
+                .andDo(document("weather/diarias-por-id",
                         preprocessResponse(prettyPrint()),
                         pathParameters(parameterWithName("id")
                                 .description("Identificador da cidade")),
@@ -239,9 +239,9 @@ class ApiDocumentationTests {
     void coletarUmaCidadePorId() throws Exception {
         Long id = cidadeId();
 
-        mockMvc.perform(post("/api/cities/{id}/collect", id))
+        mockMvc.perform(post("/api/collect/id/{id}", id))
                 .andExpect(status().isOk())
-                .andDo(document("cities/coletar-por-id",
+                .andDo(document("collect/cidade-por-id",
                         preprocessRequest(prettyPrint()),
                         preprocessResponse(prettyPrint()),
                         pathParameters(parameterWithName("id")
@@ -261,7 +261,7 @@ class ApiDocumentationTests {
     }
 
     private void coletarPorId(Long id) throws Exception {
-        mockMvc.perform(post("/api/cities/{id}/collect", id))
+        mockMvc.perform(post("/api/collect/id/{id}", id))
                 .andExpect(status().isOk());
     }
 

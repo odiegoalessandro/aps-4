@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Rotas equivalentes que identificam a cidade pelo id devolvido em GET /api/cities,
- * evitando codificar o nome na URL.
+ * sob o segmento /id/{id}, evitando codificar o nome na URL.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -64,18 +64,18 @@ class CityIdRoutesTests {
     void coletaEConsultaPeloId() throws Exception {
         Long id = idDe(CIDADE);
 
-        mockMvc.perform(post("/api/cities/{id}/collect", id))
+        mockMvc.perform(post("/api/collect/id/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].city").value(CIDADE));
 
-        mockMvc.perform(get("/api/cities/{id}/weather", id))
+        mockMvc.perform(get("/api/weather/id/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.city").value(CIDADE))
                 .andExpect(jsonPath("$.forecastAt").isNotEmpty())
                 .andExpect(jsonPath("$.updatedAt").isNotEmpty());
 
-        mockMvc.perform(get("/api/cities/{id}/history", id))
+        mockMvc.perform(get("/api/weather/id/{id}/history", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].city").value(CIDADE));
@@ -86,14 +86,14 @@ class CityIdRoutesTests {
         Long id = idDe("São Paulo");
         LocalDate hoje = LocalDate.now(ZONA);
 
-        mockMvc.perform(get("/api/cities/{id}/hourly", id))
+        mockMvc.perform(get("/api/weather/id/{id}/hourly", id))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.date").value(hoje.toString()))
                 .andExpect(jsonPath("$.timezone").value("America/Sao_Paulo"))
                 .andExpect(jsonPath("$.temperatures.length()").value(24));
 
-        mockMvc.perform(get("/api/cities/{id}/daily", id))
+        mockMvc.perform(get("/api/weather/id/{id}/daily", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.forecast.length()").value(7))
                 .andExpect(jsonPath("$.forecast[0].date").value(hoje.toString()));
@@ -110,7 +110,7 @@ class CityIdRoutesTests {
                     10.0, 90.0, 1010.0, 20.0, momento));
         }
 
-        mockMvc.perform(get("/api/cities/{id}/history", local.getId())
+        mockMvc.perform(get("/api/weather/id/{id}/history", local.getId())
                         .param("page", "1")
                         .param("size", "2"))
                 .andExpect(status().isOk())
@@ -126,11 +126,11 @@ class CityIdRoutesTests {
     void parametrosDePaginacaoInvalidosPeloIdRetornam400() throws Exception {
         Long id = idDe(CIDADE);
 
-        mockMvc.perform(get("/api/cities/{id}/history", id).param("page", "-1"))
+        mockMvc.perform(get("/api/weather/id/{id}/history", id).param("page", "-1"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
 
-        mockMvc.perform(get("/api/cities/{id}/history", id).param("size", "-1"))
+        mockMvc.perform(get("/api/weather/id/{id}/history", id).param("size", "-1"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
     }
@@ -139,30 +139,30 @@ class CityIdRoutesTests {
     void idDesconhecidoRetorna404EmTodasAsRotas() throws Exception {
         long id = 999_999L;
 
-        mockMvc.perform(get("/api/cities/{id}/weather", id))
+        mockMvc.perform(get("/api/weather/id/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
 
-        mockMvc.perform(get("/api/cities/{id}/history", id))
+        mockMvc.perform(get("/api/weather/id/{id}/history", id))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
 
-        mockMvc.perform(get("/api/cities/{id}/hourly", id))
+        mockMvc.perform(get("/api/weather/id/{id}/hourly", id))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
 
-        mockMvc.perform(get("/api/cities/{id}/daily", id))
+        mockMvc.perform(get("/api/weather/id/{id}/daily", id))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
 
-        mockMvc.perform(post("/api/cities/{id}/collect", id))
+        mockMvc.perform(post("/api/collect/id/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
     @Test
     void idNaoNumericoRetorna400() throws Exception {
-        mockMvc.perform(get("/api/cities/{id}/weather", "abc"))
+        mockMvc.perform(get("/api/weather/id/{id}", "abc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON));
     }

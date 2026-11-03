@@ -21,12 +21,12 @@ public class ColetaAgendada {
     }
 
     @Scheduled(
-            fixedDelayString = "${app.weather.collection.interval-ms:10000}",
+            fixedDelayString = "${app.weather.collection.interval-ms:900000}",
             initialDelayString = "${app.weather.collection.initial-delay-ms:5000}")
     public void coletar() {
         try {
             ResultadoColeta resultado = coletaService.coletarTodas();
-            LOG.info("Coleta agendada concluída: {} previsão(ões) gravada(s), {} falha(s)",
+            LOG.info("Coleta agendada concluída: {} previsão(ões) nova(s) gravada(s), {} falha(s)",
                     resultado.gravadas().size(), resultado.falhas().size());
         } catch (Exception e) {
             LOG.error("Erro inesperado na coleta agendada", e);

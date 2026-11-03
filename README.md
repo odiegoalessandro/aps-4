@@ -31,7 +31,7 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--app.weather.source=simulada -
 | `app.weather.source` | `openmeteo` | `openmeteo` ou `simulada` |
 | `app.weather.simulation.scenario` | `DIA_CALMO` | `DIA_CALMO`, `ONDA_DE_CALOR`, `FRENTE_FRIA`, `TEMPESTADE` |
 | `app.weather.collection.enabled` | `true` | Liga/desliga a coleta agendada |
-| `app.weather.collection.interval-ms` | `10000` | Intervalo entre coletas |
+| `app.weather.collection.interval-ms` | `900000` | Intervalo entre coletas (15 min, mesma janela do `current` do Open-Meteo) |
 | `app.weather.collection.initial-delay-ms` | `5000` | Atraso da primeira coleta |
 | `app.weather.collection.pular-repetidos` | `true` | Ignora previsões já gravadas para o mesmo horário |
 | `app.weather.openmeteo.base-url` | `https://api.open-meteo.com/v1/forecast` | URL base da API Open-Meteo |

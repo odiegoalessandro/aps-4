@@ -98,7 +98,7 @@ public class ColetaService {
             PrevisaoDoCLima previsao = fonte.buscar(local);
 
             if (pularRepetidos && previsaoDao.existePara(local, previsao.getForecastAt())) {
-                LOG.info("{}: sem dado novo da API, não gravado", nome);
+                LOG.info("{}: mesmo horário da coleta anterior, nada novo para gravar", nome);
                 registrarSucesso(nome);
                 return List.of();
             }

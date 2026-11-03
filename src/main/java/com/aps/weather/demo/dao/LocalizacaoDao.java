@@ -13,6 +13,8 @@ public interface LocalizacaoDao {
 
     List<Localizacao> listar();
 
+    Optional<Localizacao> buscarPorId(Long id);
+
     Optional<Localizacao> buscarPorNomeNormalizado(String nomeNormalizado);
 
     Localizacao salvar(Localizacao localizacao);

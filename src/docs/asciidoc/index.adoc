@@ -10,7 +10,8 @@ são gerados diretamente dos testes (`ApiDocumentationTests`) pelo Spring REST D
 modo que a documentação acompanha o contrato real da API.
 
 O nome da cidade é resolvido sem diferenciar maiúsculas nem acentos, e a resposta sempre
-respeita o fuso horário cadastrado para a cidade.
+respeita o fuso horário cadastrado para a cidade. A cidade também pode ser identificada
+pelo `id` devolvido em `GET /api/cities`, o que dispensa codificar o nome na URL.
 
 == Cidades
 
@@ -75,6 +76,32 @@ operation::collect/todas[]
 Coleta e grava as condições atuais de uma única cidade.
 
 operation::collect/cidade[]
+
+== Rotas por identificador
+
+O `id` devolvido em `GET /api/cities` pode substituir o nome da cidade em qualquer
+consulta, evitando codificar acentos e espaços na URL. As respostas são as mesmas das
+rotas por nome.
+
+=== Última previsão por id
+
+operation::cities/weather-por-id[]
+
+=== Histórico por id
+
+operation::cities/historico-por-id[]
+
+=== Temperaturas hora a hora por id
+
+operation::cities/horarias-por-id[]
+
+=== Mínimas e máximas por id
+
+operation::cities/diarias-por-id[]
+
+=== Coletar uma cidade por id
+
+operation::cities/coletar-por-id[]
 
 == Tratamento de erros
 

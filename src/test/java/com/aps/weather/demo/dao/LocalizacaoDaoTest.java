@@ -54,6 +54,22 @@ class LocalizacaoDaoTest {
     }
 
     @Test
+    void buscaPorIdEncontraACidadeGravada() {
+        Localizacao salva = dao.salvarEFlushar(
+                new Localizacao("Cidade Dao Por Id", -5.0, -6.0, "UTC"));
+
+        assertThat(dao.buscarPorId(salva.getId()))
+                .get()
+                .extracting(Localizacao::getCity)
+                .isEqualTo("Cidade Dao Por Id");
+    }
+
+    @Test
+    void buscaPorIdInexistenteRetornaVazio() {
+        assertThat(dao.buscarPorId(-1L)).isEmpty();
+    }
+
+    @Test
     void salvarAtribuiIdEPersisteAoCidade() {
         Localizacao salva = dao.salvar(
                 new Localizacao("Cidade Dao Salva", -3.0, -4.0, "America/Sao_Paulo"));

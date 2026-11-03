@@ -46,6 +46,11 @@ public class WeatherQueryService {
                 .orElseThrow(() -> new CidadeNaoEncontradaException(nome));
     }
 
+    public Localizacao buscarCidadePorId(Long id) {
+        return localizacaoDao.buscarPorId(id)
+                .orElseThrow(() -> CidadeNaoEncontradaException.paraId(id));
+    }
+
     private static String validarCidade(String cidade) {
         String nome = cidade.trim();
         if (nome.isEmpty()) {
@@ -59,21 +64,35 @@ public class WeatherQueryService {
     }
 
     public PrevisaoDoCLima ultimaPrevisao(String cidade) {
-        Localizacao local = buscarCidade(cidade);
+        return ultimaPrevisao(buscarCidade(cidade));
+    }
+
+    public PrevisaoDoCLima ultimaPrevisao(Localizacao local) {
         return previsaoDao.ultimaDe(local)
-                .orElseThrow(() -> new SemDadosClimaticosException(cidade));
+                .orElseThrow(() -> new SemDadosClimaticosException(local.getCity()));
     }
 
     public Page<PrevisaoDoCLima> historico(String cidade, int page, int size) {
+        validarPaginacao(page, size);
+        return paginarHistorico(buscarCidade(cidade), page, size);
+    }
+
+    public Page<PrevisaoDoCLima> historico(Localizacao local, int page, int size) {
+        validarPaginacao(page, size);
+        return paginarHistorico(local, page, size);
+    }
+
+    private Page<PrevisaoDoCLima> paginarHistorico(Localizacao local, int page, int size) {
+        Pageable pageable = PageRequest.of(page, Math.min(size, TAMANHO_MAXIMO_PAGINA), ORDEM_HISTORICO);
+        return previsaoDao.historicoDe(local, pageable);
+    }
+
+    private static void validarPaginacao(int page, int size) {
         if (page < 0) {
             throw new RequisicaoInvalidaException("O parâmetro page não pode ser negativo");
         }
         if (size < 1) {
             throw new RequisicaoInvalidaException("O parâmetro size deve ser maior que zero");
         }
-
-        Localizacao local = buscarCidade(cidade);
-        Pageable pageable = PageRequest.of(page, Math.min(size, TAMANHO_MAXIMO_PAGINA), ORDEM_HISTORICO);
-        return previsaoDao.historicoDe(local, pageable);
     }
 }

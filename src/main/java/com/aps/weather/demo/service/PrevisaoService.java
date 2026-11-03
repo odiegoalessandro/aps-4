@@ -56,7 +56,10 @@ public class PrevisaoService {
     }
 
     public ResultadoPrevisaoHoraria horarias(String cidade) throws Exception {
-        Localizacao local = cidades.buscarCidade(cidade);
+        return horarias(cidades.buscarCidade(cidade));
+    }
+
+    public ResultadoPrevisaoHoraria horarias(Localizacao local) throws Exception {
         ZoneId zona = fuso.zona(local);
         LocalDate hoje = LocalDate.now(relogio.withZone(zona));
         Instant inicio = hoje.atStartOfDay(zona).toInstant();
@@ -99,7 +102,10 @@ public class PrevisaoService {
     }
 
     public ResultadoPrevisaoDiaria diarias(String cidade) throws Exception {
-        Localizacao local = cidades.buscarCidade(cidade);
+        return diarias(cidades.buscarCidade(cidade));
+    }
+
+    public ResultadoPrevisaoDiaria diarias(Localizacao local) throws Exception {
         ZoneId zona = fuso.zona(local);
         LocalDate hoje = LocalDate.now(relogio.withZone(zona));
         LocalDate ultimoDia = hoje.plusDays(DIAS_PREVISAO - 1);

@@ -26,6 +26,12 @@ public class JpaLocalizacaoDao implements LocalizacaoDao {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<Localizacao> buscarPorId(Long id) {
+        return repository.findById(id);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<Localizacao> buscarPorNomeNormalizado(String nomeNormalizado) {
         return repository.findByCityNormalizada(nomeNormalizado);
     }

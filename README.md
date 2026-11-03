@@ -46,16 +46,25 @@ mvn spring-boot:run -Dspring-boot.run.arguments="--app.weather.source=simulada -
 | Método | Rota | Descrição |
 | --- | --- | --- |
 | GET | `/api/cities` | Lista as cidades cadastradas |
+| GET | `/api/cities/{id}/weather` | Última previsão gravada da cidade pelo id |
+| GET | `/api/cities/{id}/history` | Histórico paginado pelo id (`?page=0&size=50`, teto 200) |
+| GET | `/api/cities/{id}/hourly` | Temperaturas hora a hora pelo id |
+| GET | `/api/cities/{id}/daily` | Mínimas e máximas por id |
 | GET | `/api/weather/{city}` | Última previsão gravada da cidade |
 | GET | `/api/weather/{city}/history` | Histórico paginado da cidade (`?page=0&size=50`, teto 200) |
 | GET | `/api/weather/{city}/hourly` | Temperaturas previstas hora a hora para o dia atual |
 | GET | `/api/weather/{city}/daily` | Mínimas e máximas para os próximos 7 dias, incluindo hoje |
 | POST | `/api/collect` | Coleta todas as cidades e relata gravações e falhas |
 | POST | `/api/collect/{city}` | Coleta e grava previsões de uma cidade |
+| POST | `/api/cities/{id}/collect` | Coleta e grava previsões de uma cidade pelo id |
 
 O nome da cidade é resolvido sem diferenciar maiúsculas nem acentos: `são paulo`, `SÃO PAULO` e
 `Brasilia` encontram as cidades cadastradas, e cidades com a mesma grafia normalizada são
 tratadas como uma só.
+
+O `id` de cada cidade vem de `GET /api/cities`. As rotas `/api/cities/{id}/...` têm a mesma
+resposta das rotas por nome e evitam codificar acentos e espaços na URL — indicadas para o
+front-end.
 
 ### Exemplos
 
@@ -69,6 +78,8 @@ curl "http://localhost:8080/api/weather/S%C3%A3o%20Paulo/history?page=0&size=20"
 curl "http://localhost:8080/api/weather/S%C3%A3o%20Paulo/hourly"
 
 curl "http://localhost:8080/api/weather/S%C3%A3o%20Paulo/daily"
+
+curl "http://localhost:8080/api/cities/1/hourly"
 
 curl -X POST http://localhost:8080/api/collect
 

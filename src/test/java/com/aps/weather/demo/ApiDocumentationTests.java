@@ -1,5 +1,7 @@
 package com.aps.weather.demo;
 
+import com.aps.weather.demo.domain.NomeDeCidade;
+import com.aps.weather.demo.repository.LocalizacaoRepository;
 import com.aps.weather.demo.repository.PrevisaoDiariaRepository;
 import com.aps.weather.demo.repository.PrevisaoHorariaRepository;
 import com.aps.weather.demo.repository.PrevisaoRepository;
@@ -46,6 +48,9 @@ class ApiDocumentationTests {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private LocalizacaoRepository localizacoes;
 
     @Autowired
     private PrevisaoRepository previsoes;
@@ -99,19 +104,6 @@ class ApiDocumentationTests {
     void historicoPaginado() throws Exception {
         coletar(CIDADE);
 
-        List<FieldDescriptor> campos = new ArrayList<>();
-        campos.add(fieldWithPath("content").type(ARRAY)
-                .description("Previsões da página atual"));
-        campos.addAll(Arrays.asList(camposDaPrevisao("content[].")));
-        campos.add(fieldWithPath("page").type(NUMBER)
-                .description("Página atual, base zero"));
-        campos.add(fieldWithPath("size").type(NUMBER)
-                .description("Tamanho solicitado da página"));
-        campos.add(fieldWithPath("totalElements").type(NUMBER)
-                .description("Total de previsões da cidade"));
-        campos.add(fieldWithPath("totalPages").type(NUMBER)
-                .description("Total de páginas"));
-
         mockMvc.perform(get("/api/weather/{city}/history", CIDADE)
                         .param("page", "0")
                         .param("size", "20"))
@@ -125,7 +117,7 @@ class ApiDocumentationTests {
                                         .description("Página, base zero (padrão 0)"),
                                 parameterWithName("size").optional()
                                         .description("Itens por página (padrão 50, máximo 200)")),
-                        responseFields(campos)));
+                        responseFields(camposDoHistorico())));
     }
 
     @Test
@@ -136,17 +128,7 @@ class ApiDocumentationTests {
                         preprocessResponse(prettyPrint()),
                         pathParameters(parameterWithName("city")
                                 .description("Nome da cidade cadastrada")),
-                        responseFields(
-                                fieldWithPath("date").type(STRING)
-                                        .description("Data de referência no fuso da cidade"),
-                                fieldWithPath("timezone").type(STRING)
-                                        .description("Fuso IANA usado na resposta"),
-                                fieldWithPath("temperatures").type(ARRAY)
-                                        .description("As 24 temperaturas do dia, em ordem"),
-                                fieldWithPath("temperatures[].time").type(STRING)
-                                        .description("Horário local no formato HH:mm"),
-                                fieldWithPath("temperatures[].temperature").type(NUMBER)
-                                        .description("Temperatura prevista em °C"))));
+                        responseFields(camposHorarias())));
     }
 
     @Test
@@ -157,17 +139,7 @@ class ApiDocumentationTests {
                         preprocessResponse(prettyPrint()),
                         pathParameters(parameterWithName("city")
                                 .description("Nome da cidade cadastrada")),
-                        responseFields(
-                                fieldWithPath("timezone").type(STRING)
-                                        .description("Fuso IANA usado na resposta"),
-                                fieldWithPath("forecast").type(ARRAY)
-                                        .description("Sete dias a partir de hoje, em ordem"),
-                                fieldWithPath("forecast[].date").type(STRING)
-                                        .description("Data local no formato ISO-8601"),
-                                fieldWithPath("forecast[].minTemperature").type(NUMBER)
-                                        .description("Temperatura mínima prevista em °C"),
-                                fieldWithPath("forecast[].maxTemperature").type(NUMBER)
-                                        .description("Temperatura máxima prevista em °C"))));
+                        responseFields(camposDiarias())));
     }
 
     @Test
@@ -202,9 +174,141 @@ class ApiDocumentationTests {
                         responseFields(camposDaPrevisao("[]."))));
     }
 
+    @Test
+    void climaAtualPorId() throws Exception {
+        Long id = cidadeId();
+        coletarPorId(id);
+
+        mockMvc.perform(get("/api/cities/{id}/weather", id))
+                .andExpect(status().isOk())
+                .andDo(document("cities/weather-por-id",
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("id")
+                                .description("Identificador da cidade")),
+                        responseFields(camposDaPrevisao(""))));
+    }
+
+    @Test
+    void historicoPaginadoPorId() throws Exception {
+        Long id = cidadeId();
+        coletarPorId(id);
+
+        mockMvc.perform(get("/api/cities/{id}/history", id)
+                        .param("page", "0")
+                        .param("size", "20"))
+                .andExpect(status().isOk())
+                .andDo(document("cities/historico-por-id",
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("id")
+                                .description("Identificador da cidade")),
+                        queryParameters(
+                                parameterWithName("page").optional()
+                                        .description("Página, base zero (padrão 0)"),
+                                parameterWithName("size").optional()
+                                        .description("Itens por página (padrão 50, máximo 200)")),
+                        responseFields(camposDoHistorico())));
+    }
+
+    @Test
+    void temperaturasHorariasPorId() throws Exception {
+        Long id = cidadeId();
+
+        mockMvc.perform(get("/api/cities/{id}/hourly", id))
+                .andExpect(status().isOk())
+                .andDo(document("cities/horarias-por-id",
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("id")
+                                .description("Identificador da cidade")),
+                        responseFields(camposHorarias())));
+    }
+
+    @Test
+    void temperaturasDiariasPorId() throws Exception {
+        Long id = cidadeId();
+
+        mockMvc.perform(get("/api/cities/{id}/daily", id))
+                .andExpect(status().isOk())
+                .andDo(document("cities/diarias-por-id",
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("id")
+                                .description("Identificador da cidade")),
+                        responseFields(camposDiarias())));
+    }
+
+    @Test
+    void coletarUmaCidadePorId() throws Exception {
+        Long id = cidadeId();
+
+        mockMvc.perform(post("/api/cities/{id}/collect", id))
+                .andExpect(status().isOk())
+                .andDo(document("cities/coletar-por-id",
+                        preprocessRequest(prettyPrint()),
+                        preprocessResponse(prettyPrint()),
+                        pathParameters(parameterWithName("id")
+                                .description("Identificador da cidade")),
+                        responseFields(camposDaPrevisao("[]."))));
+    }
+
+    private Long cidadeId() {
+        return localizacoes.findByCityNormalizada(NomeDeCidade.normalizar(CIDADE))
+                .orElseThrow()
+                .getId();
+    }
+
     private void coletar(String cidade) throws Exception {
         mockMvc.perform(post("/api/collect/{city}", cidade))
                 .andExpect(status().isOk());
+    }
+
+    private void coletarPorId(Long id) throws Exception {
+        mockMvc.perform(post("/api/cities/{id}/collect", id))
+                .andExpect(status().isOk());
+    }
+
+    private static FieldDescriptor[] camposDoHistorico() {
+        List<FieldDescriptor> campos = new ArrayList<>();
+        campos.add(fieldWithPath("content").type(ARRAY)
+                .description("Previsões da página atual"));
+        campos.addAll(Arrays.asList(camposDaPrevisao("content[].")));
+        campos.add(fieldWithPath("page").type(NUMBER)
+                .description("Página atual, base zero"));
+        campos.add(fieldWithPath("size").type(NUMBER)
+                .description("Tamanho solicitado da página"));
+        campos.add(fieldWithPath("totalElements").type(NUMBER)
+                .description("Total de previsões da cidade"));
+        campos.add(fieldWithPath("totalPages").type(NUMBER)
+                .description("Total de páginas"));
+        return campos.toArray(new FieldDescriptor[0]);
+    }
+
+    private static FieldDescriptor[] camposHorarias() {
+        return new FieldDescriptor[] {
+                fieldWithPath("date").type(STRING)
+                        .description("Data de referência no fuso da cidade"),
+                fieldWithPath("timezone").type(STRING)
+                        .description("Fuso IANA usado na resposta"),
+                fieldWithPath("temperatures").type(ARRAY)
+                        .description("As 24 temperaturas do dia, em ordem"),
+                fieldWithPath("temperatures[].time").type(STRING)
+                        .description("Horário local no formato HH:mm"),
+                fieldWithPath("temperatures[].temperature").type(NUMBER)
+                        .description("Temperatura prevista em °C")
+        };
+    }
+
+    private static FieldDescriptor[] camposDiarias() {
+        return new FieldDescriptor[] {
+                fieldWithPath("timezone").type(STRING)
+                        .description("Fuso IANA usado na resposta"),
+                fieldWithPath("forecast").type(ARRAY)
+                        .description("Sete dias a partir de hoje, em ordem"),
+                fieldWithPath("forecast[].date").type(STRING)
+                        .description("Data local no formato ISO-8601"),
+                fieldWithPath("forecast[].minTemperature").type(NUMBER)
+                        .description("Temperatura mínima prevista em °C"),
+                fieldWithPath("forecast[].maxTemperature").type(NUMBER)
+                        .description("Temperatura máxima prevista em °C")
+        };
     }
 
     private static FieldDescriptor[] camposDaPrevisao(String prefixo) {
